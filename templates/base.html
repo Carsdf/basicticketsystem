@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Ticketing System{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+
+<body>
+  <header>
+    <h1>Ticketing System</h1>
+    <nav>
+      {% if session.get('admin') %}
+      <a href="{{ url_for('admin_new_tickets') }}">New Tickets</a> |
+      <a href="{{ url_for('admin_taken_tickets') }}">Taken Tickets</a> |
+      <a href="{{ url_for('admin_completed_tickets') }}">Completed Tickets</a> |
+      <a href="{{ url_for('logout') }}">Logout</a>
+      {% elif session.get('user_email') %}
+      <a href="{{ url_for('submit_ticket') }}">Submit Ticket</a> |
+      <a href="{{ url_for('my_tickets') }}">My Tickets</a> |
+      <a href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+      <a href="{{ url_for('submit_ticket') }}">Submit Ticket</a> |
+      <a href="{{ url_for('my_tickets') }}">My Tickets</a> |
+      <a href="{{ url_for('user_login') }}">User Login</a> |
+      <a href="{{ url_for('admin_login') }}">Admin Login</a>
+      {% endif %}
+    </nav>
+    <hr>
+
+    <!-- Admin Panel Button (only visible for admin pages) -->
+    {% block admin_button %}
+    {% endblock %}
+
+  </header>
+
+  <main>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class="flashes">
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <hr>
+    <p>&copy; {{ current_year or "2025" }} Sigma Society Ticketing System</p>
+  </footer>
+</body>
+
+</html>

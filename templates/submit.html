@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Create a New Ticket{% endblock %}
+
+{% block content %}
+    <h2>Welcome to the Support Center</h2>
+    <p>Please fill out the form below to create a new support ticket.</p>
+
+    <form action="/submit_ticket" method="post">
+        <label for="name">Name:</label><br>
+        <input type="text" name="name" required><br>
+
+        <label for="email">Email:</label><br>
+        <input type="email" name="email" required><br>
+
+        <label for="ticket_title">Ticket Title:</label><br>
+        <input type="text" name="ticket_title" required><br>
+
+        <label for="ticket_issue">Issue:</label><br>
+        <textarea name="ticket_issue" rows="4" required></textarea><br>
+
+        <label for="category_id">Category:</label><br>
+        <select name="category_id" required>
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <input type="submit" value="Submit Ticket">
+    </form>
+{% endblock %}

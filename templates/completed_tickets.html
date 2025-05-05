@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Completed Tickets</h2>
+
+<table border="1">
+    <tr>
+        <th>Title</th>
+        <th>Issue</th>
+        <th>Email</th>
+        <th>Category</th>
+    </tr>
+    {% for ticket in tickets %}
+    <tr>
+        <td>{{ ticket.ticket_title }}</td>
+        <td>{{ ticket.ticket_issue }}</td>
+        <td>{{ ticket.email }}</td>
+        <td>{{ ticket.category_id }}</td>
+        <form action="/delete_ticket/{{ ticket.id }}" method="POST">
+            <button type="submit">Delete Ticket</button>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+{% block admin_button %}
+<a href="{{ url_for('admin_dashboard') }}">
+    <button type="button">Back to Admin Panel</button>
+</a>
+{% endblock %}
+
+{% endblock %}

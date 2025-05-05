@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>My Tickets</h2> 
+
+<h3>New Tickets</h3>
+{% if new_tickets %}
+    <table border="1">
+        <tr>
+            <th>Title</th>
+            <th>Issue</th>
+            <th>Category</th>
+        </tr>
+        {% for ticket in new_tickets %}
+        <tr>
+            <td>{{ ticket.ticket_title }}</td>
+            <td>{{ ticket.ticket_issue }}</td>
+            <td>{{ ticket.category_name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>You have no new tickets.</p>
+{% endif %}
+
+<h3>Taken Tickets</h3>
+{% if taken_tickets %}
+    <table border="1">
+        <tr>
+            <th>Title</th>
+            <th>Issue</th>
+            <th>Category</th>
+        </tr>
+        {% for ticket in taken_tickets %}
+        <tr>
+            <td>{{ ticket.ticket_title }}</td>
+            <td>{{ ticket.ticket_issue }}</td>
+            <td>{{ ticket.category_name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>You have no taken tickets.</p>
+{% endif %}
+
+<h3>Completed Tickets</h3>
+{% if completed_tickets %}
+    <table border="1">
+        <tr>
+            <th>Title</th>
+            <th>Issue</th>
+            <th>Category</th>
+        </tr>
+        {% for ticket in completed_tickets %}
+        <tr>
+            <td>{{ ticket.ticket_title }}</td>
+            <td>{{ ticket.ticket_issue }}</td>
+            <td>{{ ticket.category_name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>You have no completed tickets.</p>
+{% endif %}
+
+{% endblock %}

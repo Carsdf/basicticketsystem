@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Admin Dashboard</h2>
+
+<p><strong>New Tickets:</strong> {{ new_count }}</p>
+<p><strong>Taken Tickets:</strong> {{ taken_count }}</p>
+<p><strong>Completed Tickets:</strong> {{ completed_count }}</p>
+
+<h3>Tickets by Category</h3>
+<table border="1">
+    <tr>
+        <th>Category</th>
+        <th>New</th>
+        <th>Taken</th>
+        <th>Completed</th>
+    </tr>
+    {% for cat in category_stats %}
+    <tr>
+        <td>{{ cat.name }}</td>
+        <td>{{ cat.new }}</td>
+        <td>{{ cat.taken }}</td>
+        <td>{{ cat.completed }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br><a href="/logout">Logout</a>
+{% endblock %}
