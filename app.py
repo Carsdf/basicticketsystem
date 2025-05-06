@@ -1,6 +1,6 @@
 #Izveidots ar MI
 from pathlib import Path
-from flask import Flask, render_template, request, redirect, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3
 
 app = Flask(__name__)
@@ -64,7 +64,7 @@ def admin_login():
 
     return render_template('admin_login.html')
 
-
+#New Ticket View for admins
 @app.route('/admin/new_tickets', methods=['POST'])
 def view_all_new_tickets():
     if not session.get('admin'):
@@ -74,16 +74,19 @@ def view_all_new_tickets():
     tickets = conn.execute('SELECT * FROM NewTickets').fetchall()
     conn.close()
     return render_template('admin_new_tickets.html', tickets=tickets)
-
+#Mark ticket taken
 @app.route('/mark_ticket_taken/<int:ticket_id>', methods=['POST'])
 def mark_ticket_taken(ticket_id):
     if not session.get('admin'):
         return redirect('/admin_login')
 
     conn = get_db_connection()
+
+    # Fetch the ticket from the NewTickets table
     ticket = conn.execute('SELECT * FROM NewTickets WHERE id = ?', (ticket_id,)).fetchone()
 
     if ticket:
+        # Insert the ticket into the TakenTickets table
         conn.execute('''
             INSERT INTO TakenTickets (id, name, ticket_title, ticket_issue, email, category_id)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -91,11 +94,50 @@ def mark_ticket_taken(ticket_id):
             ticket['id'], ticket['name'], ticket['ticket_title'],
             ticket['ticket_issue'], ticket['email'], ticket['category_id']
         ))
-        conn.execute('DELETE FROM NewTickets WHERE id = ?', (ticket_id,))
+
+        # Update the 'is_taken' value to 1 for the current ticket
+        conn.execute('UPDATE NewTickets SET is_taken = 1 WHERE id = ?', (ticket_id,))
+
+        # Delete all tickets in NewTickets where is_taken = 1
+        conn.execute('DELETE FROM NewTickets WHERE is_taken = 1')
 
     conn.commit()
     conn.close()
+
     return redirect('/admin/new_tickets')
+
+@app.route('/mark_ticket_completed/<int:ticket_id>', methods=['POST'])
+def mark_ticket_completed(ticket_id):
+    if not session.get('admin'):
+        return redirect('/admin_login')
+
+    conn = get_db_connection()
+
+    # Fetch the ticket from the TakenTickets table
+    ticket = conn.execute('SELECT * FROM TakenTickets WHERE id = ?', (ticket_id,)).fetchone()
+
+    if ticket:
+        # Mark the ticket as completed by setting is_completed to 1
+        conn.execute('UPDATE TakenTickets SET is_finished = 1 WHERE id = ?', (ticket_id,))
+
+        # Insert the ticket into the CompletedTickets table
+        conn.execute('''
+            INSERT INTO CompletedTickets (id, name, ticket_title, ticket_issue, email, category_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (
+            ticket['id'], ticket['name'], ticket['ticket_title'],
+            ticket['ticket_issue'], ticket['email'], ticket['category_id']
+        ))
+
+        # Delete the ticket from TakenTickets since it's now completed
+        conn.execute('DELETE FROM TakenTickets WHERE id = ?', (ticket_id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect('/admin/completed_tickets')
+
+
 
 # Logout route
 @app.route('/logout')
@@ -195,7 +237,7 @@ def delete_ticket(ticket_id):
     return redirect(request.referrer or '/admin')
 
 
-
+#Ticket submission form
 @app.route('/submit_ticket', methods=['GET', 'POST'])
 def submit_ticket():
     if request.method == 'POST':
@@ -225,46 +267,44 @@ def submit_ticket():
 #Check your own tickets
 @app.route('/my_tickets')
 def my_tickets():
-    user_email = session.get('user_email')
-    if not user_email:
-        flash('Please log in with your email to view your tickets.')
-        return redirect('/user_login')
+    if 'user_email' not in session:
+        flash("Please log in to view your tickets.")
+        return redirect(url_for('user_login'))
 
+    user_email = session['user_email']
     conn = get_db_connection()
 
-    # New tickets
-    new_tickets = conn.execute(
-        '''SELECT nt.*, c.name AS category_name
-           FROM NewTickets nt
-           LEFT JOIN Categories c ON nt.category_id = c.id
-           WHERE nt.email = ?''',
-        (user_email,)
-    ).fetchall()
+    new_tickets = conn.execute("""
+        SELECT nt.*, c.name AS category_name
+        FROM NewTickets nt
+        LEFT JOIN Categories c ON nt.category_id = c.id
+        WHERE nt.email = ?
+    """, (user_email,)).fetchall()
 
-    # Taken tickets
-    taken_tickets = conn.execute(
-        '''SELECT tt.*, c.name AS category_name
-           FROM TakenTickets tt
-           LEFT JOIN Categories c ON tt.category_id = c.id
-           WHERE tt.email = ?''',
-        (user_email,)
-    ).fetchall()
+    taken_tickets = conn.execute("""
+        SELECT tt.*, c.name AS category_name
+        FROM TakenTickets tt
+        LEFT JOIN Categories c ON tt.category_id = c.id
+        WHERE tt.email = ?
+    """, (user_email,)).fetchall()
 
-    # Completed tickets
-    completed_tickets = conn.execute(
-        '''SELECT ct.*, c.name AS category_name
-           FROM CompletedTickets ct
-           LEFT JOIN Categories c ON ct.category_id = c.id
-           WHERE ct.email = ?''',
-        (user_email,)
-    ).fetchall()
+    completed_tickets = conn.execute("""
+        SELECT ct.*, c.name AS category_name
+        FROM CompletedTickets ct
+        LEFT JOIN Categories c ON ct.category_id = c.id
+        WHERE ct.email = ?
+    """, (user_email,)).fetchall()
 
     conn.close()
 
-    return render_template('my_tickets.html',
-                           new_tickets=new_tickets,
-                           taken_tickets=taken_tickets,
-                           completed_tickets=completed_tickets)
+    tickets = {
+        'new': new_tickets,
+        'taken': taken_tickets,
+        'completed': completed_tickets
+    }
+
+    return render_template('my_tickets.html', tickets=tickets)
+
 
 #LOGIN TO SEE YOUR OWN TICKETS
 @app.route('/user_login', methods=['GET', 'POST'])

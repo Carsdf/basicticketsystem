@@ -1,37 +1,43 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Taken Tickets</h2>
+<h2>All Taken Tickets</h2>
 
-<table border="1">
-    <tr>
-        <th>Title</th>
-        <th>Issue</th>
-        <th>Email</th>
-        <th>Category</th>
-        <th>Action</th>
-    </tr>
-    {% for ticket in tickets %}
-    <tr>
-        <td>{{ ticket.ticket_title }}</td>
-        <td>{{ ticket.ticket_issue }}</td>
-        <td>{{ ticket.email }}</td>
-        <td>{{ ticket.category_name }}</td>
-        <td>
-            <form action="/complete_ticket/{{ ticket.id }}" method="POST" style="display:inline;">
-                <button type="submit">Mark Completed</button>
-            </form>
-            <form action="/delete_ticket/{{ ticket.id }}" method="POST" style="display:inline;">
-                <button type="submit">Delete Ticket</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Issue</th>
+            <th>Email</th>
+            <th>Category</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ticket in tickets %}
+        <tr>
+            <td data-label="Title">{{ ticket.ticket_title }}</td>
+            <td data-label="Issue">{{ ticket.ticket_issue }}</td>
+            <td data-label="Email">{{ ticket.email }}</td>
+            <td data-label="Category">{{ ticket.category_name }}</td>
+            <td data-label="Actions">
+                <!-- Complete Ticket button -->
+                <form method="POST" action="/mark_ticket_completed/{{ ticket.id }}" style="display:inline;">
+                    <button type="submit" class="btn btn-success">Complete Ticket</button>
+                </form>                
+                
+                <!-- Delete Ticket button -->
+                <form method="POST" action="/delete_ticket/{{ ticket.id }}" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Delete Ticket</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
-{% block admin_button %}
-<a href="{{ url_for('admin_dashboard') }}">
-    <button type="button">Back to Admin Panel</button>
-</a>
+
+<div style="margin-top: 1em;">
+    <a href="{{ url_for('admin_dashboard') }}"><button>Back to Admin Dashboard</button></a>
+</div>
 {% endblock %}
 
-{% endblock %}

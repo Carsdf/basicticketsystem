@@ -1,66 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>My Tickets</h2> 
-
-<h3>New Tickets</h3>
-{% if new_tickets %}
-    <table border="1">
-        <tr>
-            <th>Title</th>
-            <th>Issue</th>
-            <th>Category</th>
-        </tr>
-        {% for ticket in new_tickets %}
-        <tr>
-            <td>{{ ticket.ticket_title }}</td>
-            <td>{{ ticket.ticket_issue }}</td>
-            <td>{{ ticket.category_name }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+<h2>My Tickets</h2>
+{% if tickets.new or tickets.taken or tickets.completed %}
+    {% for category, group in tickets.items() %}
+        {% if group %}
+        <h3>{{ category|capitalize }} Tickets</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Issue</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in group %}
+                <tr>
+                    <td>{{ ticket.id }}</td>
+                    <td>{{ ticket.ticket_title }}</td>
+                    <td>{{ ticket.ticket_issue }}</td>
+                    <td>{{ ticket.category_name }}</td>
+                    <td>{{ category|capitalize }}</td>
+                    <td>
+                        <!-- Delete action -->
+                        <form action="{{ url_for('delete_ticket', ticket_id=ticket.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    {% endfor %}
+    <div style="margin-top: 1em;">
+        <a href="/logout" class="button-link">Logout</a>
+    </div>
 {% else %}
-    <p>You have no new tickets.</p>
+    <p>You have no submitted tickets.</p>
 {% endif %}
-
-<h3>Taken Tickets</h3>
-{% if taken_tickets %}
-    <table border="1">
-        <tr>
-            <th>Title</th>
-            <th>Issue</th>
-            <th>Category</th>
-        </tr>
-        {% for ticket in taken_tickets %}
-        <tr>
-            <td>{{ ticket.ticket_title }}</td>
-            <td>{{ ticket.ticket_issue }}</td>
-            <td>{{ ticket.category_name }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>You have no taken tickets.</p>
-{% endif %}
-
-<h3>Completed Tickets</h3>
-{% if completed_tickets %}
-    <table border="1">
-        <tr>
-            <th>Title</th>
-            <th>Issue</th>
-            <th>Category</th>
-        </tr>
-        {% for ticket in completed_tickets %}
-        <tr>
-            <td>{{ ticket.ticket_title }}</td>
-            <td>{{ ticket.ticket_issue }}</td>
-            <td>{{ ticket.category_name }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>You have no completed tickets.</p>
-{% endif %}
-
 {% endblock %}
+
+
+
+
