@@ -2,8 +2,9 @@
 {% block title %}User Login{% endblock %}
 {% block content %}
   <h2>Enter Your Email to View Tickets</h2>
-  <form method="POST">
-    <label>Email: <input type="email" name="email" required></label><br>
-    <button type="submit">View My Tickets</button>
-  </form>
+  <form method="POST" action="/user_login">
+    <label for="email">Email:</label>
+    <input type="email" name="email" required>
+    <button type="submit">Login</button>
+  </form>  
 {% endblock %}

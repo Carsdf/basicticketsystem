@@ -222,19 +222,29 @@ def complete_ticket(ticket_id):
 #DELETE TICKET FUNCTION
 @app.route('/delete_ticket/<int:ticket_id>', methods=['POST'])
 def delete_ticket(ticket_id):
-    if not session.get('admin'):
-        return redirect('/admin_login')
+    user_email = session.get('user')
+    is_admin = session.get('admin')
+
+    if not user_email and not is_admin:
+        return redirect('/user_login')
 
     conn = get_db_connection()
 
-    # Deletes from all three - at least one will be found and deleted.
-    conn.execute('DELETE FROM NewTickets WHERE id = ?', (ticket_id,))
-    conn.execute('DELETE FROM TakenTickets WHERE id = ?', (ticket_id,))
-    conn.execute('DELETE FROM CompletedTickets WHERE id = ?', (ticket_id,))
+    if is_admin:
+        # Admins can delete by ID from any table
+        for table in ['NewTickets', 'TakenTickets', 'CompletedTickets']:
+            conn.execute(f'DELETE FROM {table} WHERE id = ?', (ticket_id,))
+    else:
+        # Users can delete only their own tickets by email
+        for table in ['NewTickets', 'TakenTickets', 'CompletedTickets']:
+            conn.execute(f'DELETE FROM {table} WHERE id = ? AND email = ?', (ticket_id, user_email))
 
     conn.commit()
     conn.close()
-    return redirect(request.referrer or '/admin')
+
+    return redirect('/my_tickets') if user_email else redirect('/admin/new_tickets')
+
+
 
 
 #Ticket submission form
@@ -267,55 +277,68 @@ def submit_ticket():
 #Check your own tickets
 @app.route('/my_tickets')
 def my_tickets():
-    if 'user_email' not in session:
-        flash("Please log in to view your tickets.")
-        return redirect(url_for('user_login'))
+    user_email = session.get('user')
+    
+    if not user_email:
+        return redirect('/user_login')
 
-    user_email = session['user_email']
     conn = get_db_connection()
 
-    new_tickets = conn.execute("""
-        SELECT nt.*, c.name AS category_name
-        FROM NewTickets nt
-        LEFT JOIN Categories c ON nt.category_id = c.id
-        WHERE nt.email = ?
-    """, (user_email,)).fetchall()
+    tickets_new = conn.execute('''
+        SELECT t.*, c.name AS category_name
+        FROM NewTickets t
+        LEFT JOIN Categories c ON t.category_id = c.id
+        WHERE t.email = ?
+    ''', (user_email,)).fetchall()
 
-    taken_tickets = conn.execute("""
-        SELECT tt.*, c.name AS category_name
-        FROM TakenTickets tt
-        LEFT JOIN Categories c ON tt.category_id = c.id
-        WHERE tt.email = ?
-    """, (user_email,)).fetchall()
+    tickets_taken = conn.execute('''
+        SELECT t.*, c.name AS category_name
+        FROM TakenTickets t
+        LEFT JOIN Categories c ON t.category_id = c.id
+        WHERE t.email = ?
+    ''', (user_email,)).fetchall()
 
-    completed_tickets = conn.execute("""
-        SELECT ct.*, c.name AS category_name
-        FROM CompletedTickets ct
-        LEFT JOIN Categories c ON ct.category_id = c.id
-        WHERE ct.email = ?
-    """, (user_email,)).fetchall()
+    tickets_completed = conn.execute('''
+        SELECT t.*, c.name AS category_name
+        FROM CompletedTickets t
+        LEFT JOIN Categories c ON t.category_id = c.id
+        WHERE t.email = ?
+    ''', (user_email,)).fetchall()
 
+
+    print(f"Tickets for {user_email}:")
+    print(f"New tickets: {tickets_new}")
+    print(f"Taken tickets: {tickets_taken}")
+    print(f"Completed tickets: {tickets_completed}")
+    
     conn.close()
 
-    tickets = {
-        'new': new_tickets,
-        'taken': taken_tickets,
-        'completed': completed_tickets
-    }
+    return render_template('my_tickets.html', tickets_new=tickets_new, tickets_taken=tickets_taken, tickets_completed=tickets_completed)
 
-    return render_template('my_tickets.html', tickets=tickets)
 
 
 #LOGIN TO SEE YOUR OWN TICKETS
 @app.route('/user_login', methods=['GET', 'POST'])
 def user_login():
     if request.method == 'POST':
-        email = request.form['email']
-        # Optionally: check that this email actually exists in the DB
-        session.clear()
-        session['user_email'] = email
-        return redirect('/my_tickets')
+        email = request.form['email'].strip().lower()
+
+        conn = get_db_connection()
+
+        exists_in_new = conn.execute('SELECT 1 FROM NewTickets WHERE email = ?', (email,)).fetchone()
+        exists_in_taken = conn.execute('SELECT 1 FROM TakenTickets WHERE email = ?', (email,)).fetchone()
+        exists_in_completed = conn.execute('SELECT 1 FROM CompletedTickets WHERE email = ?', (email,)).fetchone()
+
+        conn.close()
+
+        if exists_in_new or exists_in_taken or exists_in_completed:
+            session['user'] = email
+            return redirect('/my_tickets')
+        else:
+            flash('Email not found in the system.')
+    
     return render_template('user_login.html')
+
 
 #COMPLETED TICKETS (ADMIN)
 @app.route('/admin/completed_tickets')

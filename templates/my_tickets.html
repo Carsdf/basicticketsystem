@@ -1,50 +1,92 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>My Tickets</h2>
-{% if tickets.new or tickets.taken or tickets.completed %}
-    {% for category, group in tickets.items() %}
-        {% if group %}
-        <h3>{{ category|capitalize }} Tickets</h3>
-        <table class="table table-striped">
-            <thead>
+<h2>My New Tickets</h2>
+{% if tickets_new %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Issue</th>
+                <th>Category</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets_new %}
                 <tr>
-                    <th>#</th>
-                    <th>Title</th>
-                    <th>Issue</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ticket in group %}
-                <tr>
-                    <td>{{ ticket.id }}</td>
                     <td>{{ ticket.ticket_title }}</td>
                     <td>{{ ticket.ticket_issue }}</td>
                     <td>{{ ticket.category_name }}</td>
-                    <td>{{ category|capitalize }}</td>
                     <td>
-                        <!-- Delete action -->
-                        <form action="{{ url_for('delete_ticket', ticket_id=ticket.id) }}" method="POST" style="display:inline;">
-                            <button type="submit" class="btn btn-danger">Delete</button>
+                        <form method="POST" action="/delete_ticket/{{ ticket.id }}">
+                            <button type="submit">Delete Ticket</button>
                         </form>
                     </td>
                 </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-    {% endfor %}
-    <div style="margin-top: 1em;">
-        <a href="/logout" class="button-link">Logout</a>
-    </div>
+            {% endfor %}
+        </tbody>
+    </table>
 {% else %}
-    <p>You have no submitted tickets.</p>
+    <p>You have no new tickets.</p>
+{% endif %}
+
+<h2>My Taken Tickets</h2>
+{% if tickets_taken %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Issue</th>
+                <th>Category</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets_taken %}
+                <tr>
+                    <td>{{ ticket.ticket_title }}</td>
+                    <td>{{ ticket.ticket_issue }}</td>
+                    <td>{{ ticket.category_name }}</td>
+                    <td>
+                        <form method="POST" action="/delete_ticket/{{ ticket.id }}">
+                            <button type="submit">Delete Ticket</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>You have no taken tickets.</p>
+{% endif %}
+
+<h2>My Completed Tickets</h2>
+{% if tickets_completed %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Issue</th>
+                <th>Category</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets_completed %}
+                <tr>
+                    <td>{{ ticket.ticket_title }}</td>
+                    <td>{{ ticket.ticket_issue }}</td>
+                    <td>{{ ticket.category_name }}</td>
+                    <td>
+                        <form method="POST" action="/delete_ticket/{{ ticket.id }}">
+                            <button type="submit">Delete Ticket</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>You have no completed tickets.</p>
 {% endif %}
 {% endblock %}
-
-
-
-
