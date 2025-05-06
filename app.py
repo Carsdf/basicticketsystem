@@ -13,7 +13,7 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# Form
+# Form 
 @app.route('/')
 def show_new_tickets():
     conn = get_db_connection()

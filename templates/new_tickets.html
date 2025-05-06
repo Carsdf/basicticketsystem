@@ -6,6 +6,7 @@
 <table>
     <thead>
         <tr>
+            <th>Name</th>
             <th>Title</th>
             <th>Issue</th>
             <th>Email</th>
@@ -16,6 +17,7 @@
     <tbody>
         {% for ticket in tickets %}
         <tr>
+            <td data-label="Name">{{ ticket.name }}</td>
             <td data-label="Title">{{ ticket.ticket_title }}</td>
             <td data-label="Issue">{{ ticket.ticket_issue }}</td>
             <td data-label="Email">{{ ticket.email }}</td>

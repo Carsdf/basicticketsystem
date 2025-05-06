@@ -6,6 +6,7 @@
 <table class="table table-striped">
     <thead>
         <tr>
+            <th>Name</th>
             <th>Title</th>
             <th>Issue</th>
             <th>Email</th>
@@ -16,6 +17,7 @@
     <tbody>
         {% for ticket in tickets %}
         <tr>
+            <td data-label="Name">{{ ticket.name }}</td>
             <td data-label="Title">{{ ticket.ticket_title }}</td>
             <td data-label="Issue">{{ ticket.ticket_issue }}</td>
             <td data-label="Email">{{ ticket.email }}</td>
@@ -24,8 +26,8 @@
                 <!-- Complete Ticket button -->
                 <form method="POST" action="/mark_ticket_completed/{{ ticket.id }}" style="display:inline;">
                     <button type="submit" class="btn btn-success">Complete Ticket</button>
-                </form>                
-                
+                </form>
+
                 <!-- Delete Ticket button -->
                 <form method="POST" action="/delete_ticket/{{ ticket.id }}" style="display:inline;">
                     <button type="submit" class="btn btn-danger">Delete Ticket</button>
@@ -40,4 +42,3 @@
     <a href="{{ url_for('admin_dashboard') }}"><button>Back to Admin Dashboard</button></a>
 </div>
 {% endblock %}
-
